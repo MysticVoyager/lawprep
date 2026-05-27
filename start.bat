@@ -5,7 +5,7 @@ REM Creates a venv on first run, installs requirements, starts the portal.
 cd /d "%~dp0"
 
 echo ============================================
-echo   MH-CET Law 2026 - LawPrep Portal
+echo   MH-CET Law 2027 - LawPrep Portal
 echo ============================================
 
 where python >nul 2>nul

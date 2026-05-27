@@ -9,7 +9,7 @@ set -e
 cd "$(dirname "$0")"
 
 echo "============================================"
-echo "  MH-CET Law 2026 — LawPrep Portal"
+echo "  MH-CET Law 2027 — LawPrep Portal"
 echo "============================================"
 
 # Pick a python

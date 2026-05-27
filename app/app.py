@@ -1,5 +1,5 @@
 """
-MH-CET Law 2026 - Learning Portal
+MH-CET Law 2027 - Learning Portal
 A local tutoring platform for exam preparation.
 """
 
@@ -803,7 +803,7 @@ def _classify_paragraphs(raw_content):
 # Lesson extras — key takeaways + practice quiz (Gemini-generated, DB-cached)
 # ---------------------------------------------------------------------------
 
-_EXTRAS_PROMPT = """You are creating study aids for an MH-CET Law 2026 exam portal.
+_EXTRAS_PROMPT = """You are creating study aids for an MH-CET Law 2027 exam portal.
 
 Subject: {subject}
 Topic: {topic}
@@ -1447,7 +1447,7 @@ def complete_quiz():
     attempt_row = db.execute("SELECT quiz_type FROM quiz_attempts WHERE id = ?", (attempt_id,)).fetchone()
     test_type = attempt_row['quiz_type'] if attempt_row else 'practice'
 
-    # Percentile estimation calibrated for MH-CET Law 2026
+    # Percentile estimation calibrated for MH-CET Law 2027
     # Basis: 120 questions, no negative marking, GLC cutoff ~110+/120 (99th pct)
     if score >= 92:    # 110+/120
         percentile = 99.5
@@ -2306,7 +2306,7 @@ def admin_run_qa():
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("  MH-CET Law 2026 - Learning Portal")
+    print("  MH-CET Law 2027 - Learning Portal")
     print("=" * 60)
 
     init_db()

@@ -1,5 +1,5 @@
 """
-PDF Parser for MH-CET Law 2026 Study Materials
+PDF Parser for MH-CET Law 2027 Study Materials
 Extracts questions, options, answers, and solutions from PDF books.
 """
 

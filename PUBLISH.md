@@ -24,7 +24,7 @@ git add .
 git status            # sanity-check what's about to be committed
 git -c user.email="toamitrajput@gmail.com" \
     -c user.name="Amit Rajput" \
-    commit -m "Initial release: LawPrep — MH-CET Law 2026 study portal"
+    commit -m "Initial release: LawPrep — MH-CET Law 2027 study portal"
 ```
 
 Make sure `.env` is **not** in the `git status` output. (It won't be — the
@@ -48,7 +48,7 @@ gh repo create lawprep \
     --public \
     --source=. \
     --remote=origin \
-    --description "Free open-source MH-CET Law 2026 (3-Year LLB) study portal — lessons, MCQs, mock tests." \
+    --description "Free open-source MH-CET Law 2027 (3-Year LLB) study portal — lessons, MCQs, mock tests." \
     --push
 ```
 

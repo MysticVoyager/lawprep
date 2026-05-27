@@ -1,6 +1,6 @@
-# LawPrep — MH-CET Law 2026 Study Portal
+# LawPrep — MH-CET Law 2027 Study Portal
 
-A free, open-source, fully-local study portal for the **MH-CET Law 2026** (3-Year LLB) entrance exam. Built for LLB aspirants by a fellow student.
+A free, open-source, fully-local study portal for the **MH-CET Law 2027** (3-Year LLB) entrance exam. Built for LLB aspirants by a fellow student.
 
 Runs entirely on your own computer. No accounts, no ads, no data leaves your machine.
 
@@ -23,7 +23,7 @@ The portal ships with a pre-built SQLite database (`lawprep.db`, ~6 MB) so you c
 ## Quick start (3 steps)
 
 ```bash
-git clone https://github.com/<your-username>/lawprep.git
+git clone https://github.com/MysticVoyager/lawprep.git
 cd lawprep
 ./start.sh
 ```
@@ -50,7 +50,7 @@ If the quick-start script doesn't suit your setup:
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/<your-username>/lawprep.git
+git clone https://github.com/MysticVoyager/lawprep.git
 cd lawprep
 
 # 2. Create and activate a virtual environment (recommended)
