@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Subjects{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Subjects</h1>
+    <p class="subtitle">Choose a subject to study or practice</p>
+</div>
+
+<div class="subjects-grid">
+    {% for s in subjects %}
+    <a href="/subject/{{ s.id }}" class="subject-card" style="--accent: {{ s.color }}">
+        <div class="subject-card-icon">{{ s.icon }}</div>
+        <h3>{{ s.name }}</h3>
+        <p>{{ s.description }}</p>
+        <div class="subject-card-stats">
+            <div>
+                <strong>{{ s.question_count }}</strong>
+                <span>Questions</span>
+            </div>
+            <div>
+                <strong>{{ s.topic_count }}</strong>
+                <span>Topics</span>
+            </div>
+            <div>
+                {% set acc = ((s.correct or 0) / s.attempted * 100)|round(0)|int if s.attempted and s.attempted > 0 else 0 %}
+                <strong>{{ acc }}%</strong>
+                <span>Accuracy</span>
+            </div>
+        </div>
+        <div class="progress-bar" style="margin-top: 1rem">
+            {% set pct = ((s.attempted or 0) / s.question_count * 100) if s.question_count > 0 else 0 %}
+            <div class="progress-fill" style="width: {{ pct|round(1) }}%; background: {{ s.color }}"></div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

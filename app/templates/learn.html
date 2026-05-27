@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Learn{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>📖 Learn</h1>
+    <p class="subtitle">Study concepts, understand legal principles, and build your foundation</p>
+</div>
+
+<div class="learn-overview">
+    <div class="learn-stat">
+        <div class="learn-stat-circle">
+            {% set pct = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0 %}
+            <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" stroke="var(--border)" stroke-width="6" fill="none"/>
+                <circle cx="50" cy="50" r="44" stroke="var(--accent)" stroke-width="6" fill="none"
+                        stroke-dasharray="{{ (pct / 100 * 276.5)|round(1) }} 276.5"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+            </svg>
+            <span>{{ pct|round(0)|int }}%</span>
+        </div>
+        <div>
+            <strong>{{ completed_lessons }} / {{ total_lessons }}</strong>
+            <span>Lessons Completed</span>
+        </div>
+    </div>
+</div>
+
+<div class="learn-subjects">
+    {% for s in subjects %}
+    {% if s.lesson_count > 0 %}
+    <a href="/learn/{{ s.id }}" class="learn-subject-card" style="--accent: {{ s.color }}">
+        <div class="learn-subject-header">
+            <span class="learn-subject-icon">{{ s.icon }}</span>
+            <div>
+                <h3>{{ s.name }}</h3>
+                <p>{{ s.description }}</p>
+            </div>
+        </div>
+        <div class="learn-subject-stats">
+            <div class="learn-stat-item">
+                <strong>{{ s.lesson_count }}</strong>
+                <span>Lessons</span>
+            </div>
+            <div class="learn-stat-item">
+                <strong>{{ s.completed_lessons or 0 }}</strong>
+                <span>Completed</span>
+            </div>
+            <div class="learn-stat-item">
+                <strong>{{ s.topic_count }}</strong>
+                <span>Topics</span>
+            </div>
+        </div>
+        <div class="progress-bar" style="margin-top: 1rem">
+            {% set sp = (s.completed_lessons / s.lesson_count * 100) if s.lesson_count > 0 else 0 %}
+            <div class="progress-fill" style="width: {{ sp|round(1) }}%; background: var(--accent)"></div>
+        </div>
+    </a>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<div class="learn-tip card" style="margin-top: 2rem;">
+    <h3>💡 How Learning Works</h3>
+    <div class="tip-grid">
+        <div class="tip-item">
+            <span class="tip-num">1</span>
+            <div>
+                <strong>Read the Lesson</strong>
+                <p>Study legal principles, concepts and case laws at your own pace</p>
+            </div>
+        </div>
+        <div class="tip-item">
+            <span class="tip-num">2</span>
+            <div>
+                <strong>Rate Your Confidence</strong>
+                <p>Mark how well you understood — helps prioritize revision</p>
+            </div>
+        </div>
+        <div class="tip-item">
+            <span class="tip-num">3</span>
+            <div>
+                <strong>Practice Questions</strong>
+                <p>Test yourself on related questions with instant feedback</p>
+            </div>
+        </div>
+        <div class="tip-item">
+            <span class="tip-num">4</span>
+            <div>
+                <strong>Tutor Mode</strong>
+                <p>Let the tutor teach you concepts and quiz you interactively</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

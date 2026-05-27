@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Welcome to LawPrep</h1>
+    <p class="subtitle">MH-CET Law 2026 - 3 Year LLB Preparation</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-value">{{ total_questions }}</div>
+        <div class="stat-label">Total Questions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ total_attempts }}</div>
+        <div class="stat-label">Questions Attempted</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value">{{ accuracy }}%</div>
+        <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value">{{ streak }}</div>
+        <div class="stat-label">Active Days (30d)</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h2>Subjects</h2>
+        <div class="subject-list">
+            {% for s in subjects %}
+            <a href="/subject/{{ s.id }}" class="subject-row">
+                <div class="subject-info">
+                    <span class="subject-icon">{{ s.icon }}</span>
+                    <div>
+                        <div class="subject-name">{{ s.name }}</div>
+                        <div class="subject-meta">{{ s.question_count }} questions</div>
+                    </div>
+                </div>
+                <div class="subject-progress">
+                    {% set pct = ((s.attempted or 0) / s.question_count * 100) if s.question_count > 0 else 0 %}
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ pct|round(1) }}%; background: {{ s.color }}"></div>
+                    </div>
+                    <span class="progress-text">{{ pct|round(0)|int }}%</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Quick Actions</h2>
+        <!-- Streak display -->
+        <div id="streakBanner" style="background:linear-gradient(135deg,#f59e0b22,#ef444422);border:1px solid #f59e0b;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;">
+            <span style="font-size:1.5rem;">🔥</span>
+            <div>
+                <span id="streakCount" style="font-size:1.2rem;font-weight:800;color:#f59e0b;">--</span>
+                <span style="font-size:.85rem;opacity:.7;"> day study streak</span>
+            </div>
+            <a href="/study-plan" style="margin-left:auto;font-size:.8rem;color:#6366f1;text-decoration:none;">View Plan →</a>
+        </div>
+        <div class="quick-actions">
+            <a href="/study-plan" class="action-btn primary">
+                <span>📅</span> Today's Study Plan
+            </a>
+            <a href="/learn" class="action-btn primary">
+                <span>📖</span> Study & Learn
+            </a>
+            <a href="/quiz/quick?count=10" class="action-btn">
+                <span>⚡</span> Quick 10 Questions
+            </a>
+            <a href="/mock-tests" class="action-btn">
+                <span>🏆</span> Take Mock Test
+            </a>
+            <a href="/weak-areas" class="action-btn danger">
+                <span>🎯</span> Review Weak Areas
+            </a>
+            <a href="/revision" class="action-btn">
+                <span>🔖</span> Revision Mode
+            </a>
+            <a href="/heatmap" class="action-btn">
+                <span>🗺️</span> Topic Heatmap
+            </a>
+        </div>
+
+        <h2 style="margin-top: 1.5rem;">Recent Activity</h2>
+        {% if recent %}
+        <div class="activity-list">
+            {% for r in recent %}
+            <a href="/results/{{ r.id }}" class="activity-item">
+                <span class="activity-icon">{{ r.icon or '📝' }}</span>
+                <div class="activity-info">
+                    <div>{{ r.topic_name or r.quiz_type }}</div>
+                    <div class="activity-meta">{{ r.correct_answers }}/{{ r.total_questions }} correct - {{ r.score_percentage|round(1) }}%</div>
+                </div>
+                <span class="activity-score {% if r.score_percentage >= 70 %}good{% elif r.score_percentage >= 40 %}ok{% else %}poor{% endif %}">
+                    {{ r.score_percentage|round(0)|int }}%
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">No activity yet. Start practicing!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/streak').then(r=>r.json()).then(d=>{
+    const el = document.getElementById('streakCount');
+    if(el) el.textContent = d.streak;
+});
+</script>
+{% endblock %}

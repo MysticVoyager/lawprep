@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ subject.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <a href="/subjects" class="back-link">← Subjects</a>
+    <h1>{{ subject.icon }} {{ subject.name }}</h1>
+    <p class="subtitle">{{ subject.description }}</p>
+</div>
+
+<div class="topics-grid">
+    {% for t in topics|sort(attribute='question_count', reverse=true) %}
+    {% if t.question_count > 0 %}
+    <div class="topic-card">
+        <div class="topic-header">
+            <h3>{{ t.name }}</h3>
+            <span class="badge">{{ t.question_count }} Q</span>
+        </div>
+        <div class="topic-stats">
+            {% set acc = ((t.correct or 0) / t.attempted * 100)|round(0)|int if t.attempted and t.attempted > 0 else 0 %}
+            <span>{{ t.attempted or 0 }} attempted</span>
+            <span>{{ acc }}% accuracy</span>
+        </div>
+        <div class="progress-bar">
+            {% set pct = ((t.attempted or 0) / t.question_count * 100) if t.question_count > 0 else 0 %}
+            <div class="progress-fill" style="width: {{ pct|round(1) }}%; background: {{ subject.color }}"></div>
+        </div>
+        <div class="topic-actions">
+            <a href="/study/{{ t.id }}" class="btn btn-secondary">📖 Study</a>
+            <a href="/quiz/{{ t.id }}?count=10" class="btn btn-primary">⚡ Quiz (10)</a>
+            <a href="/quiz/{{ t.id }}?count={{ t.question_count }}" class="btn btn-outline">📝 All</a>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

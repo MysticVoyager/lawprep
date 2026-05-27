@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Learn - {{ subject.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <a href="/learn" class="back-link">← Learning Hub</a>
+    <h1>{{ subject.icon }} {{ subject.name }}</h1>
+    <p class="subtitle">{{ subject.description }}</p>
+</div>
+
+<div class="learn-topics-grid">
+    {% for t in topics %}
+    <div class="learn-topic-card">
+        <div class="learn-topic-header">
+            <h3>{{ t.name }}</h3>
+            <div class="learn-topic-badges">
+                {% if t.lesson_count > 0 %}
+                <span class="badge lesson-badge">{{ t.lesson_count }} lessons</span>
+                {% endif %}
+                {% if t.question_count > 0 %}
+                <span class="badge">{{ t.question_count }} Q</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if t.lesson_count > 0 %}
+        <div class="progress-bar" style="margin: 0.75rem 0">
+            {% set pct = (t.completed_lessons / t.lesson_count * 100) if t.lesson_count > 0 else 0 %}
+            <div class="progress-fill" style="width: {{ pct|round(1) }}%; background: {{ subject.color }}"></div>
+        </div>
+        <div class="learn-topic-meta">
+            {{ t.completed_lessons or 0 }} / {{ t.lesson_count }} lessons completed
+        </div>
+        {% endif %}
+
+        <div class="learn-topic-actions">
+            {% if t.lesson_count > 0 %}
+            <a href="/learn/topic/{{ t.id }}" class="btn btn-primary">📖 Study Lessons</a>
+            {% endif %}
+            <a href="/tutor/{{ t.id }}" class="btn btn-tutor">🎓 Tutor Mode</a>
+            {% if t.question_count > 0 %}
+            <a href="/quiz/{{ t.id }}?count=10" class="btn btn-outline">⚡ Quiz</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

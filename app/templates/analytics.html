@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>📈 Analytics</h1>
+    <p class="subtitle">Track your preparation progress</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value">{{ (total_time // 3600) }}h {{ ((total_time % 3600) // 60) }}m</div>
+        <div class="stat-label">Total Study Time</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">{{ daily_stats|length }}</div>
+        <div class="stat-label">Active Days</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-value">{{ quiz_history|length }}</div>
+        <div class="stat-label">Quizzes Completed</div>
+    </div>
+</div>
+
+<div class="analytics-grid">
+    <div class="card">
+        <h2>Subject Performance</h2>
+        <div class="subject-performance">
+            {% for s in subject_stats %}
+            <div class="perf-row">
+                <div class="perf-header">
+                    <span>{{ s.icon }} {{ s.name }}</span>
+                    {% set acc = ((s.correct or 0) / s.attempted * 100)|round(0)|int if s.attempted and s.attempted > 0 else 0 %}
+                    <span class="perf-pct {% if acc >= 70 %}good{% elif acc >= 40 %}ok{% else %}poor{% endif %}">{{ acc }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ acc }}%; background: {{ s.color }}"></div>
+                </div>
+                <div class="perf-detail">
+                    {{ s.attempted or 0 }} / {{ s.total_questions }} attempted | {{ s.correct or 0 }} correct
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🎯 Weak Topics</h2>
+        {% if weak_topics %}
+        <div class="weak-topics-list">
+            {% for t in weak_topics %}
+            <div class="weak-topic">
+                <div class="weak-topic-info">
+                    <span>{{ t.icon }} {{ t.topic_name }}</span>
+                    <span class="weak-detail">{{ t.subject_name }} | {{ t.attempts }} attempts</span>
+                </div>
+                <span class="weak-accuracy">{{ t.accuracy }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">Complete more quizzes to see weak areas</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if daily_stats %}
+<div class="card">
+    <h2>Daily Activity</h2>
+    <div class="daily-chart">
+        {% for d in daily_stats|reverse %}
+        <div class="day-bar" title="{{ d.day }}: {{ d.correct }}/{{ d.total }}">
+            {% set acc = (d.correct / d.total * 100)|round(0)|int if d.total > 0 else 0 %}
+            <div class="day-fill" style="height: {{ [acc, 5]|max }}%; background: {% if acc >= 70 %}#10b981{% elif acc >= 40 %}#f59e0b{% else %}#ef4444{% endif %}">
+            </div>
+            <span class="day-label">{{ d.day[-5:] }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Quiz History</h2>
+    {% if quiz_history %}
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Topic</th>
+                <th>Score</th>
+                <th>Time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in quiz_history %}
+            <tr>
+                <td>{{ q.completed_at[:16] if q.completed_at else '-' }}</td>
+                <td><span class="badge">{{ q.quiz_type }}</span></td>
+                <td>{{ q.icon or '' }} {{ q.test_name or q.topic_name or q.quiz_type }}</td>
+                <td>
+                    <span class="{% if q.score_percentage >= 70 %}good{% elif q.score_percentage >= 40 %}ok{% else %}poor{% endif %}">
+                        {{ q.score_percentage|round(0)|int }}%
+                    </span>
+                    ({{ q.correct_answers }}/{{ q.total_questions }})
+                </td>
+                <td>{{ (q.time_taken_seconds // 60) if q.time_taken_seconds else 0 }}m</td>
+                <td><a href="/results/{{ q.id }}" class="btn btn-sm btn-outline">Review</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">No quizzes completed yet</p>
+    {% endif %}
+</div>
+{% endblock %}

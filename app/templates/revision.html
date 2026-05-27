@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Revision Mode{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🔄 Revision Mode</h1>
+    <p class="subtitle">Practice your bookmarked questions</p>
+</div>
+{% if message %}
+<div class="empty-state" style="text-align:center;padding:3rem;">
+    <div style="font-size:3rem;margin-bottom:1rem;">🔖</div>
+    <h3>{{ message }}</h3>
+    <p style="opacity:.6;margin:.5rem 0 1.5rem;">Bookmark questions during any quiz or mock test by clicking the bookmark icon.</p>
+    <a href="/mock-tests" class="btn">Take a Mock Test</a>
+    <a href="/subjects" class="btn" style="margin-left:.75rem;background:transparent;border:1px solid #6366f1;color:#6366f1;">Practice by Subject</a>
+</div>
+{% else %}
+<div style="background:#1e293b;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <span style="font-size:1.1rem;font-weight:600;">{{ questions|length }} bookmarked questions loaded</span>
+            <p style="opacity:.6;font-size:.85rem;margin:.25rem 0 0;">These are questions you flagged for review. Answer them, then check explanations.</p>
+        </div>
+        <a href="/bookmarks" style="color:#6366f1;font-size:.85rem;">View all bookmarks →</a>
+    </div>
+</div>
+<script>window.location = '/quiz/quick?mode=revision';</script>
+<p style="opacity:.6;">Redirecting to quiz mode with your bookmarks...</p>
+{% endif %}
+{% endblock %}

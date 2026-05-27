@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}Tutor - {{ topic.name }}{% endblock %}
+{% block content %}
+<div class="tutor-container">
+    <div class="tutor-header">
+        <div>
+            <a href="/learn" class="back-link">← Learning Hub</a>
+            <h1>🎓 Tutor Mode: {{ topic.name }}</h1>
+            <p class="subtitle">{{ topic.subject_name }} — Learn, then practice</p>
+        </div>
+        <div class="tutor-progress-info">
+            <div class="tutor-step-label" id="stepLabel">Step 1: Learn</div>
+            <div class="tutor-progress-dots" id="progressDots"></div>
+        </div>
+    </div>
+
+    <!-- PHASE 1: TEACHING -->
+    <div id="teachPhase">
+        {% for l in lessons %}
+        <div class="tutor-lesson {% if not loop.first %}hidden{% endif %}" data-lesson-idx="{{ loop.index0 }}" data-lesson-id="{{ l.id }}">
+            <div class="tutor-lesson-header">
+                <span class="tutor-lesson-num">Concept {{ loop.index }} of {{ lessons|length }}</span>
+                <h2>{{ l.title }}</h2>
+            </div>
+
+            <div class="tutor-lesson-content">
+                {% if l.lesson_type == 'syllabus' %}
+                <div class="concepts-list">
+                    {% for line in l.content.split('\n') %}
+                    {% if line.strip() %}
+                    <div class="concept-item">{{ line }}</div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="teaching-passage">
+                    {{ l.content }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="tutor-lesson-actions">
+                <div class="tutor-confidence">
+                    <span>How well did you understand?</span>
+                    <div class="mini-confidence">
+                        <button class="mini-conf" onclick="rateAndNext(1, {{ l.id }}, {{ loop.index0 }})">😟</button>
+                        <button class="mini-conf" onclick="rateAndNext(2, {{ l.id }}, {{ loop.index0 }})">🤔</button>
+                        <button class="mini-conf active" onclick="rateAndNext(3, {{ l.id }}, {{ loop.index0 }})">😊</button>
+                        <button class="mini-conf" onclick="rateAndNext(4, {{ l.id }}, {{ loop.index0 }})">😄</button>
+                        <button class="mini-conf" onclick="rateAndNext(5, {{ l.id }}, {{ loop.index0 }})">🤩</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not lessons %}
+        <div class="tutor-no-lessons">
+            <p>No lessons available for this topic yet. Let's go straight to practice!</p>
+            <button class="btn btn-primary" onclick="startQuizPhase()">Start Practice →</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PHASE 2: QUIZ -->
+    <div id="quizPhase" class="hidden">
+        <div class="tutor-quiz-intro">
+            <h2>🎯 Now let's test what you learned!</h2>
+            <p>Answer these questions based on the concepts you just studied.</p>
+        </div>
+
+        {% for q in questions %}
+        <div class="tutor-question hidden" data-q-idx="{{ loop.index0 }}" data-qid="{{ q.id }}">
+            <div class="tutor-q-header">
+                <span class="q-number">Question {{ loop.index }} of {{ questions|length }}</span>
+            </div>
+
+            {% if q.passage %}
+            <div class="passage">
+                <div class="passage-label">📜 Passage</div>
+                <p>{{ q.passage }}</p>
+            </div>
+            {% endif %}
+
+            <div class="question-text">{{ q.question_text }}</div>
+
+            <div class="options-list">
+                {% for letter, text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+                {% if text %}
+                <button class="option" data-letter="{{ letter }}" onclick="tutorSelectOption(this)">
+                    <span class="option-letter">{{ letter }}</span>
+                    <span class="option-text">{{ text }}</span>
+                </button>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="tutor-q-actions hidden" id="tqa-{{ loop.index0 }}">
+                <button class="btn btn-primary" id="tqcheck-{{ loop.index0 }}" onclick="tutorCheckAnswer({{ loop.index0 }})" disabled>
+                    Check Answer
+                </button>
+            </div>
+
+            <div class="tutor-feedback hidden" id="tfb-{{ loop.index0 }}"></div>
+
+            <div class="tutor-next hidden" id="tnext-{{ loop.index0 }}">
+                {% if loop.last %}
+                <button class="btn btn-success" onclick="finishTutor()">🏆 See Results</button>
+                {% else %}
+                <button class="btn btn-primary" onclick="tutorNextQuestion()">Next Question →</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- PHASE 3: RESULTS -->
+    <div id="resultsPhase" class="hidden">
+        <div class="tutor-results">
+            <h2>🏆 Session Complete!</h2>
+            <div class="tutor-results-stats">
+                <div class="tutor-result-card">
+                    <span class="tutor-result-icon">📖</span>
+                    <strong id="lessonsStudied">0</strong>
+                    <span>Concepts Learned</span>
+                </div>
+                <div class="tutor-result-card">
+                    <span class="tutor-result-icon">✅</span>
+                    <strong id="correctCount">0</strong>
+                    <span>Correct Answers</span>
+                </div>
+                <div class="tutor-result-card">
+                    <span class="tutor-result-icon">📊</span>
+                    <strong id="scoreDisplay">0%</strong>
+                    <span>Score</span>
+                </div>
+            </div>
+            <div class="tutor-results-actions">
+                <a href="/learn/topic/{{ topic.id }}" class="btn btn-secondary">← Back to Lessons</a>
+                <a href="/tutor/{{ topic.id }}" class="btn btn-primary">🔄 Another Session</a>
+                <a href="/quiz/{{ topic.id }}?count=20" class="btn btn-outline">📝 Full Quiz</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="attemptId" value="{{ attempt_id }}">
+{% endblock %}
+
+{% block scripts %}
+<script>
+const TOTAL_LESSONS = {{ lessons|length }};
+const TOTAL_QUESTIONS = {{ questions|length }};
+const ATTEMPT_ID = {{ attempt_id }};
+let currentLesson = 0;
+let currentQuestion = 0;
+let tutorCorrect = 0;
+let tutorAnswered = 0;
+
+// Build progress dots
+const dotsEl = document.getElementById('progressDots');
+for (let i = 0; i < TOTAL_LESSONS; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'progress-dot lesson-dot';
+    if (i === 0) dot.classList.add('active');
+    dotsEl.appendChild(dot);
+}
+const divider = document.createElement('span');
+divider.className = 'progress-divider';
+divider.textContent = '|';
+if (TOTAL_QUESTIONS > 0) dotsEl.appendChild(divider);
+for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'progress-dot quiz-dot';
+    dotsEl.appendChild(dot);
+}
+
+function rateAndNext(confidence, lessonId, idx) {
+    // Save progress
+    fetch('/api/lesson_progress', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ lesson_id: lessonId, status: 'completed', confidence: confidence })
+    });
+
+    // Mark dot
+    document.querySelectorAll('.lesson-dot')[idx].classList.add('done');
+
+    // Move to next lesson or quiz phase
+    document.querySelector(`[data-lesson-idx="${idx}"]`).classList.add('hidden');
+
+    if (idx + 1 < TOTAL_LESSONS) {
+        currentLesson = idx + 1;
+        document.querySelector(`[data-lesson-idx="${currentLesson}"]`).classList.remove('hidden');
+        document.querySelectorAll('.lesson-dot')[currentLesson].classList.add('active');
+        document.getElementById('stepLabel').textContent = `Step 1: Learn (${currentLesson + 1}/${TOTAL_LESSONS})`;
+    } else {
+        startQuizPhase();
+    }
+}
+
+function startQuizPhase() {
+    document.getElementById('teachPhase').classList.add('hidden');
+    document.getElementById('quizPhase').classList.remove('hidden');
+    document.getElementById('stepLabel').textContent = 'Step 2: Practice';
+
+    if (TOTAL_QUESTIONS > 0) {
+        document.querySelector('[data-q-idx="0"]').classList.remove('hidden');
+        document.getElementById('tqa-0').classList.remove('hidden');
+        if (document.querySelectorAll('.quiz-dot').length > 0) {
+            document.querySelectorAll('.quiz-dot')[0].classList.add('active');
+        }
+    } else {
+        finishTutor();
+    }
+}
+
+function tutorSelectOption(btn) {
+    const container = btn.closest('.tutor-question');
+    container.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    btn.classList.add('selected');
+    const checkBtn = document.getElementById(`tqcheck-${currentQuestion}`);
+    if (checkBtn) checkBtn.disabled = false;
+}
+
+function tutorCheckAnswer(idx) {
+    const container = document.querySelector(`[data-q-idx="${idx}"]`);
+    const selected = container.querySelector('.option.selected');
+    if (!selected) return;
+
+    const qid = container.dataset.qid;
+    const letter = selected.dataset.letter;
+
+    // Disable options
+    container.querySelectorAll('.option').forEach(o => {
+        o.disabled = true;
+        o.style.pointerEvents = 'none';
+    });
+    document.getElementById(`tqcheck-${idx}`).classList.add('hidden');
+
+    fetch('/api/submit_answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ question_id: parseInt(qid), selected_answer: letter, attempt_id: ATTEMPT_ID })
+    })
+    .then(r => r.json())
+    .then(data => {
+        tutorAnswered++;
+        const fb = document.getElementById(`tfb-${idx}`);
+        fb.classList.remove('hidden');
+
+        if (data.correct) {
+            tutorCorrect++;
+            selected.classList.add('correct');
+            fb.innerHTML = `
+                <div class="feedback-panel correct-feedback">
+                    <div class="feedback-icon">✅</div>
+                    <div class="feedback-text">Excellent! That's correct.</div>
+                    ${data.explanation ? '<div class="feedback-explanation"><div class="explanation-label">💡 Explanation</div><p>' + data.explanation + '</p></div>' : ''}
+                </div>`;
+            document.querySelectorAll('.quiz-dot')[idx].classList.add('done');
+        } else {
+            selected.classList.add('incorrect');
+            if (data.correct_answer) {
+                container.querySelectorAll('.option').forEach(o => {
+                    if (o.dataset.letter === data.correct_answer) o.classList.add('correct');
+                });
+            }
+            fb.innerHTML = `
+                <div class="feedback-panel incorrect-feedback">
+                    <div class="feedback-icon">❌</div>
+                    <div class="feedback-text">Not quite. The correct answer is <strong>${data.correct_answer}</strong>.</div>
+                    ${data.explanation ? '<div class="feedback-explanation"><div class="explanation-label">💡 Explanation</div><p>' + data.explanation + '</p></div>' : ''}
+                </div>`;
+            document.querySelectorAll('.quiz-dot')[idx].classList.add('wrong');
+        }
+
+        document.getElementById(`tnext-${idx}`).classList.remove('hidden');
+    });
+}
+
+function tutorNextQuestion() {
+    document.querySelector(`[data-q-idx="${currentQuestion}"]`).classList.add('hidden');
+    currentQuestion++;
+    document.querySelector(`[data-q-idx="${currentQuestion}"]`).classList.remove('hidden');
+    document.getElementById(`tqa-${currentQuestion}`).classList.remove('hidden');
+
+    if (currentQuestion < TOTAL_QUESTIONS) {
+        document.querySelectorAll('.quiz-dot')[currentQuestion].classList.add('active');
+    }
+    document.getElementById('stepLabel').textContent = `Step 2: Practice (${currentQuestion + 1}/${TOTAL_QUESTIONS})`;
+}
+
+function finishTutor() {
+    const timeTaken = 0;
+    fetch('/api/complete_quiz', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ attempt_id: ATTEMPT_ID, time_taken: timeTaken })
+    }).then(() => {
+        document.getElementById('teachPhase').classList.add('hidden');
+        document.getElementById('quizPhase').classList.add('hidden');
+        document.getElementById('resultsPhase').classList.remove('hidden');
+        document.getElementById('stepLabel').textContent = 'Complete!';
+
+        document.getElementById('lessonsStudied').textContent = TOTAL_LESSONS;
+        document.getElementById('correctCount').textContent = `${tutorCorrect}/${tutorAnswered}`;
+        const score = tutorAnswered > 0 ? Math.round(tutorCorrect / tutorAnswered * 100) : 0;
+        document.getElementById('scoreDisplay').textContent = `${score}%`;
+    });
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    const key = e.key.toUpperCase();
+    if (['A', 'B', 'C', 'D'].includes(key)) {
+        const activeQ = document.querySelector('.tutor-question:not(.hidden)');
+        if (activeQ) {
+            const opt = activeQ.querySelector(`[data-letter="${key}"]`);
+            if (opt && !opt.disabled) opt.click();
+        }
+    }
+    if (e.key === 'Enter') {
+        const checkBtn = document.getElementById(`tqcheck-${currentQuestion}`);
+        if (checkBtn && !checkBtn.classList.contains('hidden') && !checkBtn.disabled) {
+            checkBtn.click();
+            return;
+        }
+        const nextDiv = document.getElementById(`tnext-${currentQuestion}`);
+        if (nextDiv && !nextDiv.classList.contains('hidden')) {
+            const btn = nextDiv.querySelector('button');
+            if (btn) btn.click();
+        }
+    }
+});
+</script>
+{% endblock %}

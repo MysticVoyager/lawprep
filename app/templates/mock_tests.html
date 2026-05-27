@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Mock Tests{% endblock %}
+{% block content %}
+<style>
+    .gen-actions {
+        display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+    }
+    .gen-btn {
+        padding: 0.8rem 1.5rem; border-radius: 10px; border: none;
+        font-weight: 600; cursor: pointer; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 0.5rem;
+        transition: all 0.2s; color: #fff;
+    }
+    .gen-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .gen-full { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .gen-adaptive { background: linear-gradient(135deg, #ef4444, #f97316); }
+    .gen-eng { background: linear-gradient(135deg, #ec4899, #f9a8d4); color: #1a1a2e; }
+    .gen-gk { background: linear-gradient(135deg, #10b981, #34d399); color: #1a1a2e; }
+    .gen-legal { background: linear-gradient(135deg, #14b8a6, #2dd4bf); color: #1a1a2e; }
+    .gen-logical { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: #1a1a2e; }
+
+    .gen-form { display: inline; }
+
+    .exam-info-box {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 12px;
+        padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+    }
+    .exam-info-box .info-tag {
+        background: #2a2a3e; padding: 0.3rem 0.8rem; border-radius: 6px;
+        font-size: 0.85rem; font-weight: 500;
+    }
+
+    .mock-tests-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.2rem; margin-top: 1.5rem;
+    }
+    .mock-card {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 14px;
+        padding: 1.3rem; transition: all 0.2s;
+    }
+    .mock-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+    .mock-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+    .mock-card-header h3 { margin: 0; font-size: 1rem; color: #e0e0e0; }
+    .badge-q {
+        background: #2a2a3e; padding: 0.2rem 0.6rem; border-radius: 6px;
+        font-size: 0.8rem; color: #a78bfa; font-weight: 600;
+    }
+    .mock-card-meta {
+        display: flex; gap: 1rem; font-size: 0.82rem; color: #888; margin-bottom: 0.8rem;
+    }
+    .mock-card-sections {
+        display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .sec-badge {
+        padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem;
+        font-weight: 600; text-transform: uppercase;
+    }
+    .sec-badge.legal { background: rgba(45,212,191,0.15); color: #2dd4bf; }
+    .sec-badge.gk { background: rgba(52,211,153,0.15); color: #34d399; }
+    .sec-badge.logical { background: rgba(56,189,248,0.15); color: #38bdf8; }
+    .sec-badge.english { background: rgba(249,168,212,0.15); color: #f9a8d4; }
+
+    .mock-card .start-btn {
+        display: block; text-align: center; padding: 0.6rem;
+        background: #6366f1; color: #fff; border-radius: 8px;
+        text-decoration: none; font-weight: 600; font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+    .mock-card .start-btn:hover { background: #5558e6; }
+
+    .best-score-badge {
+        background: rgba(34,197,94,0.15); color: #22c55e;
+        padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+    }
+
+    .chart-container {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 14px;
+        padding: 1.5rem; margin-bottom: 2rem;
+    }
+    .chart-container h3 { margin-top: 0; color: #a78bfa; }
+    .chart-bars {
+        display: flex; align-items: flex-end; gap: 8px; height: 150px;
+        padding-top: 1rem; border-bottom: 1px solid #2a2a3e;
+    }
+    .chart-bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .chart-bar {
+        width: 100%; max-width: 40px; background: linear-gradient(to top, #6366f1, #a78bfa);
+        border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s;
+    }
+    .chart-label { font-size: 0.65rem; color: #888; margin-top: 0.4rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+    .chart-value { font-size: 0.7rem; color: #a78bfa; font-weight: 600; margin-bottom: 0.2rem; }
+
+    .section-divider { margin: 2rem 0 1rem; font-size: 1.1rem; font-weight: 600; color: #a78bfa; }
+</style>
+
+<div class="page-header">
+    <h1>Mock Tests</h1>
+    <p class="subtitle">MH-CET Law 3-Year LLB - Full-length and sectional practice tests</p>
+</div>
+
+<div class="exam-info-box">
+    <strong>MH-CET Law 2025+ Format:</strong>
+    <span class="info-tag">120 MCQs</span>
+    <span class="info-tag">120 Minutes</span>
+    <span class="info-tag">No Negative Marking</span>
+    <span class="info-tag">1 Mark / Question</span>
+</div>
+
+<div class="gen-actions">
+    <form class="gen-form" method="POST" action="/generate-mock">
+        <button type="submit" class="gen-btn gen-full">+ Generate Full Mock Test (120Q)</button>
+    </form>
+    <form class="gen-form" method="POST" action="/generate-adaptive">
+        <button type="submit" class="gen-btn gen-adaptive">+ Adaptive Test (Weak Areas)</button>
+    </form>
+</div>
+
+<div class="gen-actions">
+    <form class="gen-form" method="POST" action="/generate-sectional/English">
+        <button type="submit" class="gen-btn gen-eng">English Sectional (40Q)</button>
+    </form>
+    <form class="gen-form" method="POST" action="/generate-sectional/General Knowledge">
+        <button type="submit" class="gen-btn gen-gk">GK Sectional (32Q)</button>
+    </form>
+    <form class="gen-form" method="POST" action="/generate-sectional/Legal Reasoning">
+        <button type="submit" class="gen-btn gen-legal">Legal Sectional (24Q)</button>
+    </form>
+    <form class="gen-form" method="POST" action="/generate-sectional/Logical Reasoning">
+        <button type="submit" class="gen-btn gen-logical">Logical Sectional (24Q)</button>
+    </form>
+</div>
+
+{% if score_history and score_history|length > 1 %}
+<div class="chart-container">
+    <h3>Score Progression</h3>
+    <div class="chart-bars">
+        {% for h in score_history %}
+        <div class="chart-bar-wrap">
+            <div class="chart-value">{{ h.score_percentage|round(0)|int }}%</div>
+            <div class="chart-bar" style="height: {{ h.score_percentage }}%;"></div>
+            <div class="chart-label">{{ h.name[:12] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if tests %}
+<div class="section-divider">Available Tests</div>
+<div class="mock-tests-grid">
+    {% for t in tests %}
+    <div class="mock-card">
+        <div class="mock-card-header">
+            <h3>{{ t.name }}</h3>
+            <span class="badge-q">{{ t.total_questions }}Q / {{ t.time_limit_minutes }}min</span>
+        </div>
+        <div class="mock-card-meta">
+            <span>{{ t.attempts or 0 }} attempt{{ 's' if (t.attempts or 0) != 1 }}</span>
+            {% if t.best_score is not none and t.best_score is not none %}
+            <span class="best-score-badge">Best: {{ t.best_score|round(0)|int }}%</span>
+            {% endif %}
+        </div>
+        <div class="mock-card-sections">
+            <span class="sec-badge english">English</span>
+            <span class="sec-badge gk">GK</span>
+            <span class="sec-badge legal">Legal</span>
+            <span class="sec-badge logical">Logical</span>
+        </div>
+        <a href="/mock-test/{{ t.id }}" class="start-btn">
+            {% if t.attempts and t.attempts > 0 %}Retake{% else %}Start Test{% endif %}
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 3rem; color: #888;">
+    <p style="font-size: 1.2rem;">No mock tests yet.</p>
+    <p>Click "Generate Full Mock Test" above to create your first practice exam.</p>
+</div>
+{% endif %}
+{% endblock %}

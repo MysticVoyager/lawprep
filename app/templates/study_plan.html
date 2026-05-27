@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}24-Day Study Plan{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>📅 24-Day MH-CET Study Plan</h1>
+    <p class="subtitle">March 22 – April 2, 2026 | Exam: April 1–2 | Target: GLC Mumbai / KC Law</p>
+</div>
+
+<div class="plan-legend" style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <span style="background:#22c55e22;border:1px solid #22c55e;padding:4px 12px;border-radius:8px;font-size:.8rem;">Legal Reasoning</span>
+    <span style="background:#3b82f622;border:1px solid #3b82f6;padding:4px 12px;border-radius:8px;font-size:.8rem;">GK + Legal Awareness</span>
+    <span style="background:#f59e0b22;border:1px solid #f59e0b;padding:4px 12px;border-radius:8px;font-size:.8rem;">Full-Length Mock</span>
+    <span style="background:#ef444422;border:1px solid #ef4444;padding:4px 12px;border-radius:8px;font-size:.8rem;">Speed Drill</span>
+    <span style="background:#8b5cf622;border:1px solid #8b5cf6;padding:4px 12px;border-radius:8px;font-size:.8rem;">Confidence Test</span>
+    <span style="background:#ec489922;border:1px solid #ec4899;padding:4px 12px;border-radius:8px;font-size:.8rem;">EXAM DAY</span>
+</div>
+
+<div style="overflow-x:auto;">
+<table class="plan-table" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+<thead>
+<tr style="background:#1e293b;text-align:left;">
+    <th style="padding:10px 8px;white-space:nowrap;">Day / Date</th>
+    <th style="padding:10px 8px;">Theme</th>
+    <th style="padding:10px 8px;">Morning Study</th>
+    <th style="padding:10px 8px;">Afternoon Practice</th>
+    <th style="padding:10px 8px;">Evening GK (10q)</th>
+    <th style="padding:10px 8px;">Night Revision</th>
+    <th style="padding:10px 8px;white-space:nowrap;">Daily Test</th>
+    <th style="padding:10px 8px;text-align:center;">Target</th>
+</tr>
+</thead>
+<tbody>
+{% for d in plan %}
+{% set is_exam = 'EXAM' in d.priority %}
+{% set is_lr = 'Legal Reasoning' == d.priority %}
+{% set is_gk = 'GK' in d.priority %}
+{% set is_full = 'Full' in d.daily_test_name %}
+{% set is_speed = 'Speed' in d.daily_test_name %}
+{% set is_conf = 'Confidence' in d.daily_test_name %}
+{% if is_exam %}{% set row_bg = 'background:#ec489915;border-left:3px solid #ec4899;' %}
+{% elif is_lr %}{% set row_bg = 'background:#22c55e10;border-left:3px solid #22c55e;' %}
+{% elif is_gk %}{% set row_bg = 'background:#3b82f610;border-left:3px solid #3b82f6;' %}
+{% elif is_full %}{% set row_bg = 'background:#f59e0b10;border-left:3px solid #f59e0b;' %}
+{% elif is_speed %}{% set row_bg = 'background:#ef444410;border-left:3px solid #ef4444;' %}
+{% else %}{% set row_bg = 'background:#8b5cf610;border-left:3px solid #8b5cf6;' %}
+{% endif %}
+<tr style="{{ row_bg }}">
+    <td style="padding:8px;white-space:nowrap;font-weight:600;">
+        Day {{ d.day }}<br>
+        <span style="font-size:.75rem;opacity:.7;">{{ d.date }}</span>
+    </td>
+    <td style="padding:8px;font-weight:500;max-width:160px;">{{ d.theme }}</td>
+    <td style="padding:8px;max-width:200px;font-size:.8rem;">{{ d.morning }}</td>
+    <td style="padding:8px;max-width:200px;font-size:.8rem;">{{ d.afternoon }}</td>
+    <td style="padding:8px;font-size:.8rem;">{{ d.evening }}</td>
+    <td style="padding:8px;font-size:.8rem;">{{ d.night }}</td>
+    <td style="padding:8px;white-space:nowrap;">
+        {% if d.daily_test_id %}
+            {% if d.daily_test_id in completed_test_ids %}
+            <span style="color:#22c55e;font-weight:700;font-size:.8rem;">✓ Done</span><br>
+            <a href="/mock-test/{{ d.daily_test_id }}" style="color:#6366f1;font-size:.72rem;text-decoration:none;">Retake →</a>
+            {% else %}
+            <a href="/mock-test/{{ d.daily_test_id }}" class="btn-small" style="background:#6366f1;color:#fff;padding:4px 10px;border-radius:6px;text-decoration:none;font-size:.75rem;">
+                Take Test #{{ d.daily_test_id }}
+            </a>
+            {% endif %}
+        {% else %}
+        <span style="color:#ef4444;font-weight:700;">EXAM DAY</span>
+        {% endif %}
+    </td>
+    <td style="padding:8px;text-align:center;font-weight:700;color:{% if d.target_questions >= 120 %}#ec4899{% else %}#22c55e{% endif %};">
+        {{ d.target_questions }}q
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div class="strategy-box" style="margin-top:2rem;background:#1e293b;border-radius:12px;padding:1.5rem;">
+    <h3 style="color:#f59e0b;margin-bottom:1rem;">Exam Strategy — MH-CET Law 2026</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+        <div style="background:#0f172a;border-radius:8px;padding:1rem;">
+            <div style="font-weight:700;color:#22c55e;margin-bottom:.5rem;">Attempt Order</div>
+            <ol style="margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.8;">
+                <li>Legal Reasoning (24q) — your strongest</li>
+                <li>GK / Current Affairs (32q)</li>
+                <li>Logical Reasoning (24q)</li>
+                <li>English (40q) — do last</li>
+            </ol>
+        </div>
+        <div style="background:#0f172a;border-radius:8px;padding:1rem;">
+            <div style="font-weight:700;color:#3b82f6;margin-bottom:.5rem;">Time Budget</div>
+            <ul style="margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.8;">
+                <li>Legal: ~25 min (24q)</li>
+                <li>GK: ~28 min (32q)</li>
+                <li>Logical: ~25 min (24q)</li>
+                <li>English: ~35 min (40q)</li>
+                <li>Buffer: ~7 min review</li>
+            </ul>
+        </div>
+        <div style="background:#0f172a;border-radius:8px;padding:1rem;">
+            <div style="font-weight:700;color:#f59e0b;margin-bottom:.5rem;">Cutoff Targets</div>
+            <ul style="margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.8;">
+                <li>GLC Mumbai: 110+/120 (99th %ile)</li>
+                <li>KC Law: 100+/120 (97th %ile)</li>
+                <li>No negative marking — ALWAYS answer</li>
+                <li>Guess: eliminate 2 options first</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

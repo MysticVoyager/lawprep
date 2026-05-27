@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MH-CET Law 2026{% endblock %} | LawPrep</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <span class="logo-icon">⚖️</span>
+            <span class="logo-text">LawPrep</span>
+            <span class="logo-badge">2026</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                <span class="nav-icon">📊</span> Dashboard
+            </a></li>
+            <li class="nav-divider-label">LEARN</li>
+            <li><a href="/learn" class="{% if '/learn' in request.path or '/lesson' in request.path or '/tutor' in request.path %}active{% endif %}">
+                <span class="nav-icon">📖</span> Study & Learn
+            </a></li>
+            <li class="nav-divider-label">PRACTICE</li>
+            <li><a href="/subjects" class="{% if '/subject' in request.path and '/learn' not in request.path %}active{% endif %}">
+                <span class="nav-icon">📚</span> Subjects
+            </a></li>
+            <li><a href="/quiz/quick" class="{% if request.path == '/quiz/quick' %}active{% endif %}">
+                <span class="nav-icon">⚡</span> Quick Quiz
+            </a></li>
+            <li><a href="/mock-tests" class="{% if '/mock-test' in request.path %}active{% endif %}">
+                <span class="nav-icon">📝</span> Mock Tests
+            </a></li>
+            <li><a href="/weak-areas" class="{% if request.path == '/weak-areas' %}active{% endif %}">
+                <span class="nav-icon">🎯</span> Weak Areas
+            </a></li>
+            <li class="nav-divider-label">TRACK</li>
+            <li><a href="/bookmarks" class="{% if request.path == '/bookmarks' %}active{% endif %}">
+                <span class="nav-icon">🔖</span> Bookmarks
+            </a></li>
+            <li><a href="/analytics" class="{% if request.path == '/analytics' %}active{% endif %}">
+                <span class="nav-icon">📈</span> Analytics
+            </a></li>
+            <li><a href="/heatmap" class="{% if request.path == '/heatmap' %}active{% endif %}">
+                <span class="nav-icon">🗺️</span> Topic Heatmap
+            </a></li>
+            <li><a href="/revision" class="{% if request.path == '/revision' %}active{% endif %}">
+                <span class="nav-icon">🔄</span> Revision Mode
+            </a></li>
+            <li><a href="/study-plan" class="{% if request.path == '/study-plan' %}active{% endif %}">
+                <span class="nav-icon">📅</span> Study Plan
+            </a></li>
+        </ul>
+        <div class="nav-footer">
+            <div class="exam-countdown" id="examCountdown"></div>
+        </div>
+    </nav>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- TTS Player Bar -->
+    <div id="ttsBar" class="tts-bar hidden">
+        <div class="tts-controls">
+            <button id="ttsPrev" title="Previous paragraph [">⏮</button>
+            <button id="ttsRepeat" title="Repeat paragraph R">↩</button>
+            <button id="ttsPlay" class="tts-play-btn" title="Play / Pause Space">▶</button>
+            <button id="ttsStop" title="Stop S">⏹</button>
+            <button id="ttsNext" title="Next paragraph ]">⏭</button>
+        </div>
+        <div class="tts-center">
+            <span id="ttsProgress">—</span>
+            <span id="ttsStatus">Press ▶ to start reading</span>
+        </div>
+        <div class="tts-right">
+            <span id="ttsCharsLeft" class="tts-chars-left" title="ElevenLabs characters remaining this month"></span>
+            <select id="ttsSpeed" title="Speed">
+                <option value="0.75">0.75×</option>
+                <option value="1" selected>1×</option>
+                <option value="1.25">1.25×</option>
+                <option value="1.5">1.5×</option>
+                <option value="2">2×</option>
+            </select>
+            <select id="ttsVoice" title="Voice">
+                <option value="21m00Tcm4TlvDq8ikWAM">🎙 Rachel — Female, warm</option>
+                <option value="pNInz6obpgDQGcFmaJgB">🎙 Adam — Male, deep</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">🎙 Bella — Female, soft</option>
+                <option value="ErXwobaYiN019PkySvjV">🎙 Antoni — Male, calm</option>
+                <option value="__browser__">🔊 Browser Voice (Free)</option>
+            </select>
+            <button id="ttsPodcastBar" class="tts-podcast-btn" title="Podcast mode">🎙 Podcast</button>
+        </div>
+    </div>
+    <button id="ttsMic" class="tts-mic-btn hidden" title="Voice command (E)">🎤</button>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='tts.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <a href="/learn/topic/{{ lesson.topic_id }}" class="back-link">← {{ lesson.topic_name }}</a>
+    <div class="lesson-breadcrumb">
+        <span>{{ lesson.icon }} {{ lesson.subject_name }}</span>
+        <span>›</span>
+        <span>{{ lesson.topic_name }}</span>
+    </div>
+</div>
+
+<div class="lesson-container">
+    <div class="lesson-main">
+        <div class="lesson-title-bar">
+            <h1 id="lessonTtsTitle">{{ lesson.title }}</h1>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+                {% if lesson.lesson_type == 'syllabus' %}
+                <span class="lesson-type-badge syllabus">📋 Key Concepts</span>
+                {% else %}
+                <span class="lesson-type-badge passage">📜 Legal Principle</span>
+                {% endif %}
+                <button class="lesson-podcast-btn" onclick="if(window.LawPrepTTS)LawPrepTTS.startPodcast()">🎙 Listen as Podcast</button>
+            </div>
+        </div>
+
+        <div class="lesson-content" id="lessonTtsContent">
+            {% if lesson.lesson_type == 'syllabus' %}
+            <div class="concepts-list">
+                {% for line in lesson.content.split('\n') %}
+                {% set line_clean = line.strip() %}
+                {% if line_clean %}
+                <div class="para-wrapper" data-tts-text="{{ line_clean | e }}">
+                    <div class="concept-item lesson-para">{{ line_clean }}</div>
+                    {% if line_clean | length >= 80 %}
+                    <div class="explain-btn-row">
+                        <button class="explain-more-btn" onclick="window.ttsExplainBtn(this)">🧑‍🏫 Explain This</button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="teaching-passage">
+{%- for para in content_paragraphs -%}
+{%- set idx = loop.index0 -%}
+{%- if para.type == 'heading' %}
+<div class="para-wrapper para-heading-wrapper" data-tts-text="{{ para.text | e }}" data-tts-built-idx="{{ idx }}"><h3 class="para-heading lesson-para">{{ para.text }}</h3></div>
+{%- elif para.type in ('list_item', 'acronym', 'short') %}
+<div class="para-wrapper para-wrapper-minor" data-tts-text="{{ para.text | e }}" data-tts-built-idx="{{ idx }}"><p class="lesson-para para-minor">{{ para.text | nl2br }}</p></div>
+{%- else %}
+<div class="para-wrapper para-block" data-tts-text="{{ para.text | e }}" data-tts-built-idx="{{ idx }}"><p class="lesson-para">{{ para.text | nl2br }}</p>{%- if para.show_explain %}<div class="explain-btn-row"><button class="explain-more-btn" onclick="window.ttsExplainBtn(this)">🧑‍🏫 Explain This</button></div>{%- endif %}</div>
+{%- endif %}
+{%- endfor %}
+            </div>
+
+            <!-- Dynamic Key Takeaways -->
+            <div class="lesson-highlight lesson-takeaways" id="takeawaysBox">
+                <h3>📝 Key Takeaways</h3>
+                {% if extras and extras.takeaways %}
+                <ul id="takeawaysList">
+                    {% for point in extras.takeaways %}
+                    <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div id="takeawaysList" class="extras-loading">
+                    <span class="extras-spinner"></span> Generating takeaways…
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Interactive Quiz Widget -->
+            <div class="lesson-quiz-widget" id="lessonQuiz">
+                <div class="quiz-header">
+                    <span class="quiz-badge">🎯 Practice Quiz</span>
+                </div>
+                {% if extras and extras.quiz %}
+                {% set q = extras.quiz %}
+                <div id="quizBody">
+                    <div class="quiz-scenario">{{ q.scenario }}</div>
+                    <div class="quiz-question">{{ q.question }}</div>
+                    <div class="quiz-options" id="quizOptions">
+                        {% for opt in q.options %}
+                        <button class="quiz-option-btn" data-letter="{{ opt.letter }}"
+                                data-correct="{{ q.correct }}"
+                                data-explanation="{{ q.explanation | e }}"
+                                onclick="lessonQuizAnswer(this)">
+                            <span class="quiz-letter">{{ opt.letter }}</span>
+                            <span class="quiz-text">{{ opt.text }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="quiz-result hidden" id="quizResult"></div>
+                </div>
+                {% else %}
+                <div id="quizBody" class="extras-loading">
+                    <span class="extras-spinner"></span> Generating quiz…
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Confidence Rating -->
+        <div class="lesson-rating" id="ratingSection">
+            <h3>How well did you understand this?</h3>
+            <div class="confidence-buttons">
+                <button class="conf-btn {% if lesson.confidence == 1 %}active{% endif %}" data-level="1" onclick="rateLecture(1, this)">
+                    <span>😟</span> Not at all
+                </button>
+                <button class="conf-btn {% if lesson.confidence == 2 %}active{% endif %}" data-level="2" onclick="rateLecture(2, this)">
+                    <span>🤔</span> Partially
+                </button>
+                <button class="conf-btn {% if lesson.confidence == 3 %}active{% endif %}" data-level="3" onclick="rateLecture(3, this)">
+                    <span>😊</span> Mostly
+                </button>
+                <button class="conf-btn {% if lesson.confidence == 4 %}active{% endif %}" data-level="4" onclick="rateLecture(4, this)">
+                    <span>😄</span> Well
+                </button>
+                <button class="conf-btn {% if lesson.confidence == 5 %}active{% endif %}" data-level="5" onclick="rateLecture(5, this)">
+                    <span>🤩</span> Perfectly
+                </button>
+            </div>
+        </div>
+
+        <!-- Related Practice Questions -->
+        {% if related_questions %}
+        <div class="lesson-practice">
+            <h3>🎯 Test Yourself</h3>
+            <p class="subtitle">Try these related questions to check your understanding</p>
+
+            {% for q in related_questions %}
+            <div class="practice-q" id="pq-{{ q.id }}">
+                <div class="question-text">
+                    <span class="q-number">Q{{ loop.index }}.</span>
+                    {{ q.question_text }}
+                </div>
+                <div class="options-list">
+                    {% for letter, text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+                    {% if text %}
+                    <button class="option" data-letter="{{ letter }}" data-qid="{{ q.id }}"
+                            onclick="checkPracticeAnswer(this)">
+                        <span class="option-letter">{{ letter }}</span>
+                        <span class="option-text">{{ text }}</span>
+                    </button>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="practice-feedback hidden" id="pfb-{{ q.id }}"></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Navigation -->
+    <div class="lesson-nav">
+        {% if prev_lesson %}
+        <a href="/lesson/{{ prev_lesson.id }}" class="btn btn-secondary">← Previous</a>
+        {% else %}
+        <span></span>
+        {% endif %}
+
+        <span class="lesson-counter">Lesson of {{ total_in_topic }}</span>
+
+        {% if next_lesson %}
+        <button class="btn btn-primary" onclick="completeAndGo('/lesson/{{ next_lesson.id }}')">Next →</button>
+        {% else %}
+        <button class="btn btn-success" id="allDoneBtn" onclick="allDone()">✓ All Done</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Completion toast -->
+<div id="completionToast" class="completion-toast hidden">
+    <span class="toast-icon">🎉</span>
+    <span class="toast-msg">Great job! Lesson completed.</span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function lessonQuizAnswer(btn) {
+    const correct = btn.dataset.correct;
+    const explanation = btn.dataset.explanation;
+    const chosen = btn.dataset.letter;
+    btn.closest('.quiz-options').querySelectorAll('.quiz-option-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.letter === correct) b.classList.add('quiz-correct');
+        else if (b === btn && chosen !== correct) b.classList.add('quiz-wrong');
+    });
+    const result = document.getElementById('quizResult');
+    result.classList.remove('hidden');
+    if (chosen === correct) {
+        result.innerHTML = `<div class="quiz-result-inner correct-result">✅ Correct! ${explanation}</div>`;
+    } else {
+        result.innerHTML = `<div class="quiz-result-inner wrong-result">❌ Incorrect. The correct answer is <strong>${correct}</strong>. ${explanation}</div>`;
+    }
+}
+
+function _renderExtras(extras) {
+    // Render takeaways
+    const ta = document.getElementById('takeawaysList');
+    if (ta && extras.takeaways && extras.takeaways.length) {
+        const ul = document.createElement('ul');
+        extras.takeaways.forEach(pt => {
+            const li = document.createElement('li');
+            li.textContent = pt;
+            ul.appendChild(li);
+        });
+        ta.replaceWith(ul);
+        ul.id = 'takeawaysList';
+    }
+    // Render quiz
+    const qb = document.getElementById('quizBody');
+    if (qb && extras.quiz) {
+        const q = extras.quiz;
+        const escAttr = s => s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        let html = `<div class="quiz-scenario">${q.scenario}</div>
+<div class="quiz-question">${q.question}</div>
+<div class="quiz-options" id="quizOptions">`;
+        q.options.forEach(opt => {
+            html += `<button class="quiz-option-btn" data-letter="${opt.letter}"
+                data-correct="${q.correct}"
+                data-explanation="${escAttr(q.explanation)}"
+                onclick="lessonQuizAnswer(this)">
+                <span class="quiz-letter">${opt.letter}</span>
+                <span class="quiz-text">${opt.text}</span>
+            </button>`;
+        });
+        html += `</div><div class="quiz-result hidden" id="quizResult"></div>`;
+        qb.innerHTML = html;
+    }
+}
+
+// Auto-generate extras if not cached
+(function autoExtras() {
+    const needsExtras = !{{ 'true' if extras else 'false' }};
+    if (!needsExtras) return;
+    fetch('/api/lesson-extras/{{ lesson.id }}', {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok && data.extras) _renderExtras(data.extras);
+            else {
+                // Show subtle error state
+                const ta = document.getElementById('takeawaysList');
+                if (ta) ta.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;">Could not generate takeaways.</span>';
+                const qb = document.getElementById('quizBody');
+                if (qb) qb.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;">Could not generate quiz.</span>';
+            }
+        })
+        .catch(() => {
+            const ta = document.getElementById('takeawaysList');
+            if (ta) ta.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;">Could not generate takeaways.</span>';
+            const qb = document.getElementById('quizBody');
+            if (qb) qb.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;">Could not generate quiz.</span>';
+        });
+})();
+
+const LESSON_ID = {{ lesson.id }};
+const TOPIC_URL = '/learn/topic/{{ lesson.topic_id }}';
+
+function _postProgress(confidence) {
+    return fetch('/api/lesson_progress', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({lesson_id: LESSON_ID, status: 'completed', confidence: confidence})
+    });
+}
+
+function _showToast(msg) {
+    const t = document.getElementById('completionToast');
+    if (!t) return;
+    t.querySelector('.toast-msg').textContent = msg;
+    t.classList.remove('hidden');
+    t.classList.add('toast-visible');
+    setTimeout(() => { t.classList.remove('toast-visible'); setTimeout(() => t.classList.add('hidden'), 400); }, 2800);
+}
+
+function rateLecture(level, btn) {
+    document.querySelectorAll('.conf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _postProgress(level);
+}
+
+function completeAndGo(url) {
+    _postProgress(0).finally(() => { window.location.href = url; });
+}
+
+function allDone() {
+    const btn = document.getElementById('allDoneBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Saving…';
+    const confidence = parseInt(document.querySelector('.conf-btn.active')?.dataset.level || '0');
+    _postProgress(confidence).then(r => r.json()).then(() => {
+        btn.textContent = '✓ Completed!';
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-completed');
+        _showToast('🎉 Great job! Lesson completed.');
+        setTimeout(() => { window.location.href = TOPIC_URL; }, 1400);
+    }).catch(() => {
+        // Navigate anyway even if save fails
+        window.location.href = TOPIC_URL;
+    });
+}
+
+function checkPracticeAnswer(btn) {
+    const qid = btn.dataset.qid;
+    const letter = btn.dataset.letter;
+    const container = btn.closest('.practice-q');
+
+    // Disable all options
+    container.querySelectorAll('.option').forEach(o => {
+        o.disabled = true;
+        o.style.pointerEvents = 'none';
+    });
+
+    fetch('/api/submit_answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            question_id: parseInt(qid),
+            selected_answer: letter,
+            attempt_id: null
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        const fb = document.getElementById(`pfb-${qid}`);
+        fb.classList.remove('hidden');
+
+        if (data.correct) {
+            btn.classList.add('correct');
+            fb.innerHTML = '<div class="feedback-panel correct-feedback"><div class="feedback-icon">✅</div><div class="feedback-text">Correct! Well done.</div></div>';
+        } else {
+            btn.classList.add('incorrect');
+            container.querySelectorAll('.option').forEach(o => {
+                if (o.dataset.letter === data.correct_answer) o.classList.add('correct');
+            });
+            fb.innerHTML = `<div class="feedback-panel incorrect-feedback"><div class="feedback-icon">❌</div><div class="feedback-text">Incorrect. The correct answer is ${data.correct_answer}.</div>${data.explanation ? '<div class="feedback-explanation"><div class="explanation-label">💡 Explanation</div><p>' + data.explanation + '</p></div>' : ''}</div>`;
+        }
+    });
+}
+</script>
+{% endblock %}

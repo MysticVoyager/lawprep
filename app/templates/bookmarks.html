@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Bookmarks{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🔖 Bookmarks</h1>
+    <p class="subtitle">Questions you've saved for review</p>
+</div>
+
+{% if bookmarks %}
+<div class="study-cards">
+    {% for b in bookmarks %}
+    <div class="study-card">
+        <div class="study-card-header">
+            <span class="badge">{{ b.icon }} {{ b.subject_name }} → {{ b.topic_name }}</span>
+            <button class="bookmark-btn active" onclick="toggleBookmark({{ b.question_id }}, this); this.closest('.study-card').remove();">🔖</button>
+        </div>
+
+        {% if b.passage %}
+        <div class="passage compact">
+            <p>{{ b.passage[:500] }}{% if b.passage|length > 500 %}...{% endif %}</p>
+        </div>
+        {% endif %}
+
+        <div class="question-text">{{ b.question_text }}</div>
+
+        <div class="options-list review-options">
+            {% for letter, text in [('A', b.option_a), ('B', b.option_b), ('C', b.option_c), ('D', b.option_d)] %}
+            {% if text %}
+            <div class="option {% if b.correct_answer == letter %}correct{% endif %}">
+                <span class="option-letter">{{ letter }}</span>
+                <span class="option-text">{{ text }}</span>
+                {% if b.correct_answer == letter %}<span class="correct-mark">✓</span>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if b.explanation %}
+        <div class="explanation-panel">
+            <div class="explanation-label">💡 Explanation</div>
+            <p>{{ b.explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state-large">
+    <p>No bookmarked questions yet.</p>
+    <p>Click 🔖 on any question while studying to save it here.</p>
+    <a href="/subjects" class="btn btn-primary">Start Studying</a>
+</div>
+{% endif %}
+{% endblock %}

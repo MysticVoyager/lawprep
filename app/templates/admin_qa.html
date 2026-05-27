@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}QA Report — Answer Validation{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🔍 QA Validation Report</h1>
+    <p class="subtitle">Automated answer auditing for all {{ total }} questions</p>
+</div>
+
+<!-- Progress Overview -->
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:2rem;">
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ validated }}</div>
+        <div class="stat-label">Validated ({{ pct }}%)</div>
+    </div>
+    <div class="stat-card" style="border-color:#ef4444;">
+        <div class="stat-icon">✏️</div>
+        <div class="stat-value" style="color:#ef4444;">{{ fixed }}</div>
+        <div class="stat-label">Wrong Answers Fixed</div>
+    </div>
+    <div class="stat-card" style="border-color:#22c55e;">
+        <div class="stat-icon">✓</div>
+        <div class="stat-value" style="color:#22c55e;">{{ confirmed }}</div>
+        <div class="stat-label">Confirmed Correct</div>
+    </div>
+    <div class="stat-card" style="border-color:#f59e0b;">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value" style="color:#f59e0b;">{{ skipped }}</div>
+        <div class="stat-label">Low Confidence Skipped</div>
+    </div>
+    <div class="stat-card" style="border-color:#6366f1;">
+        <div class="stat-icon">🚩</div>
+        <div class="stat-value" style="color:#6366f1;">{{ reports }}</div>
+        <div class="stat-label">User Reports</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-value">{{ total - validated }}</div>
+        <div class="stat-label">Still To Validate</div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div style="background:#1e293b;border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;">
+        <span style="font-weight:600;">Validation Progress</span>
+        <span style="color:#a78bfa;">{{ validated }} / {{ total }}</span>
+    </div>
+    <div style="height:12px;background:#0f172a;border-radius:6px;overflow:hidden;">
+        <div style="height:100%;width:{{ pct }}%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:6px;transition:width .5s;"></div>
+    </div>
+</div>
+
+<!-- Agent Control -->
+<div style="background:#1e293b;border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+            <h3 style="margin:0 0 .3rem;color:#a78bfa;">QA Agent</h3>
+            <p style="margin:0;font-size:.85rem;opacity:.7;">
+                Status:
+                {% if agent_running %}
+                <span style="color:#22c55e;font-weight:700;">● RUNNING</span>
+                {% else %}
+                <span style="color:#888;">● Stopped</span>
+                {% endif %}
+            </p>
+            {% if qa_json.get('started_at') %}
+            <p style="margin:.3rem 0 0;font-size:.75rem;opacity:.5;">
+                Last run: {{ qa_json.started_at[:16].replace('T',' ') }}
+                {% if qa_json.get('completed_at') %} → {{ qa_json.completed_at[11:16] }}{% endif %}
+            </p>
+            {% endif %}
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            {% if not agent_running %}
+            <button onclick="runAgent()" style="background:#6366f1;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem;">
+                ▶ Run QA Agent Now
+            </button>
+            {% else %}
+            <span style="background:#22c55e22;border:1px solid #22c55e;color:#22c55e;padding:.6rem 1.2rem;border-radius:8px;font-size:.9rem;">Agent running…</span>
+            {% endif %}
+            <a href="/admin/qa-report" style="background:#2a2a3e;color:#ccc;padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;font-size:.9rem;">🔄 Refresh</a>
+        </div>
+    </div>
+</div>
+
+<!-- Corrections List -->
+{% if corrections %}
+<div style="background:#1e293b;border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <h3 style="margin:0 0 1rem;color:#ef4444;">✏️ All Corrections Made ({{ fixed }} total)</h3>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+        <thead>
+            <tr style="background:#0f172a;text-align:left;">
+                <th style="padding:8px 10px;white-space:nowrap;">Q#</th>
+                <th style="padding:8px 10px;">Subject</th>
+                <th style="padding:8px 10px;max-width:300px;">Question (truncated)</th>
+                <th style="padding:8px 10px;text-align:center;">Old → New</th>
+                <th style="padding:8px 10px;">Explanation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for c in corrections %}
+        {% set parts = c.validation_note.replace('corrected_','').split('_to_') %}
+        <tr style="border-bottom:1px solid #2a2a3e;">
+            <td style="padding:8px 10px;color:#a78bfa;font-weight:700;">{{ c.id }}</td>
+            <td style="padding:8px 10px;white-space:nowrap;opacity:.7;font-size:.78rem;">{{ c.subject_name or '—' }}</td>
+            <td style="padding:8px 10px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.question_text }}">{{ c.question_text[:80] }}…</td>
+            <td style="padding:8px 10px;text-align:center;white-space:nowrap;">
+                {% if parts|length == 2 %}
+                <span style="color:#ef4444;font-weight:700;">{{ parts[0] }}</span>
+                <span style="opacity:.5;margin:0 4px;">→</span>
+                <span style="color:#22c55e;font-weight:700;">{{ parts[1] }}</span>
+                {% else %}
+                <span style="opacity:.5;">{{ c.validation_note }}</span>
+                {% endif %}
+            </td>
+            <td style="padding:8px 10px;font-size:.78rem;opacity:.8;max-width:300px;">{{ (c.explanation or '')[:120] }}{% if c.explanation and c.explanation|length > 120 %}…{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% else %}
+<div style="background:#1e293b;border-radius:12px;padding:2rem;text-align:center;opacity:.6;margin-bottom:2rem;">
+    <p>No corrections made yet. Run the QA Agent to start validating.</p>
+</div>
+{% endif %}
+
+<script>
+function runAgent() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Starting…';
+    fetch('/admin/run-qa', {method:'POST'})
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.ok) {
+                btn.textContent = '✓ Started (PID ' + d.pid + ')';
+                btn.style.background = '#22c55e';
+                setTimeout(()=>location.reload(), 2000);
+            } else {
+                alert(d.message);
+                btn.disabled = false;
+                btn.textContent = '▶ Run QA Agent Now';
+            }
+        });
+}
+</script>
+{% endblock %}

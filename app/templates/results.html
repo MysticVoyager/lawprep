@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+{% block title %}Results{% endblock %}
+{% block content %}
+<style>
+    .results-top {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) { .results-top { grid-template-columns: 1fr; } }
+
+    .score-card {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 16px;
+        padding: 2rem; display: flex; align-items: center; gap: 2rem;
+    }
+    .score-circle-wrap { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+    .score-circle-wrap svg { width: 100%; height: 100%; }
+    .score-circle-wrap .score-val {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 2rem; font-weight: 800;
+    }
+    .score-good .score-val { color: #22c55e; }
+    .score-ok .score-val { color: #fbbf24; }
+    .score-poor .score-val { color: #ef4444; }
+
+    .score-details h2 { margin: 0 0 0.3rem; font-size: 1.4rem; }
+    .score-details p { margin: 0.2rem 0; color: #888; font-size: 0.9rem; }
+    .score-details .time-val { color: #a78bfa; font-weight: 600; }
+
+    .percentile-card {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 16px;
+        padding: 2rem; display: flex; flex-direction: column; justify-content: center;
+    }
+    .percentile-val { font-size: 3rem; font-weight: 800; color: #a78bfa; margin-bottom: 0.3rem; }
+    .percentile-label { color: #888; font-size: 0.9rem; margin-bottom: 1rem; }
+    .marks-row { display: flex; gap: 1.5rem; }
+    .marks-item { text-align: center; }
+    .marks-item .val { font-size: 1.5rem; font-weight: 700; color: #e0e0e0; }
+    .marks-item .lbl { font-size: 0.75rem; color: #888; }
+
+    .section-breakdown {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 16px;
+        padding: 1.5rem; margin-bottom: 2rem;
+    }
+    .section-breakdown h3 { margin-top: 0; color: #a78bfa; font-size: 1.1rem; }
+    .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .bd-item {
+        background: #1a1a2e; border-radius: 10px; padding: 1rem;
+    }
+    .bd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .bd-name { font-weight: 600; font-size: 0.9rem; }
+    .bd-score { font-weight: 700; color: #a78bfa; }
+    .bd-bar { height: 8px; background: #2a2a3e; border-radius: 4px; overflow: hidden; }
+    .bd-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+    .bd-fill.good { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .bd-fill.ok { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .bd-fill.poor { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .bd-pct { font-size: 0.75rem; color: #888; margin-top: 0.3rem; }
+
+    .analysis-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) { .analysis-grid { grid-template-columns: 1fr; } }
+
+    .analysis-card {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 16px; padding: 1.5rem;
+    }
+    .analysis-card h3 { margin-top: 0; color: #a78bfa; font-size: 1rem; }
+
+    .weak-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.6rem 0; border-bottom: 1px solid #2a2a3e;
+    }
+    .weak-item:last-child { border-bottom: none; }
+    .weak-topic { font-size: 0.85rem; }
+    .weak-subject { font-size: 0.72rem; color: #888; }
+    .weak-acc { font-weight: 700; font-size: 0.85rem; }
+    .weak-acc.bad { color: #ef4444; }
+    .weak-acc.med { color: #fbbf24; }
+
+    .suggestion-item {
+        padding: 0.5rem 0; border-bottom: 1px solid #2a2a3e;
+        font-size: 0.85rem; color: #ccc; line-height: 1.5;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+
+    .results-actions {
+        display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .results-actions a, .results-actions form button {
+        padding: 0.7rem 1.3rem; border-radius: 10px; text-decoration: none;
+        font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer;
+    }
+    .btn-dash { background: #2a2a3e; color: #ccc; }
+    .btn-retry { background: #6366f1; color: #fff; }
+    .btn-weak { background: #ef4444; color: #fff; }
+
+    .review-section { margin-top: 2rem; }
+    .review-section h2 { color: #e0e0e0; margin-bottom: 1rem; }
+
+    .review-card {
+        background: #16163a; border: 1px solid #2a2a3e; border-radius: 12px;
+        padding: 1.2rem; margin-bottom: 1rem;
+    }
+    .review-card.review-correct { border-left: 4px solid #22c55e; }
+    .review-card.review-incorrect { border-left: 4px solid #ef4444; }
+
+    .review-header {
+        display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+    }
+    .review-num { font-weight: 700; color: #a78bfa; }
+    .review-status { font-size: 0.82rem; font-weight: 600; }
+    .review-status.correct { color: #22c55e; }
+    .review-status.incorrect { color: #ef4444; }
+    .review-subj { font-size: 0.75rem; color: #888; margin-left: auto; }
+
+    .review-passage {
+        background: #1a1a2e; border-left: 3px solid #6366f1;
+        padding: 0.7rem 1rem; margin-bottom: 0.8rem; border-radius: 0 6px 6px 0;
+        font-size: 0.85rem; color: #aaa; max-height: 120px; overflow-y: auto;
+    }
+    .review-q { font-size: 0.95rem; margin-bottom: 0.8rem; line-height: 1.6; }
+
+    .review-opts { display: flex; flex-direction: column; gap: 0.4rem; }
+    .review-opt {
+        display: flex; align-items: flex-start; gap: 0.6rem;
+        padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.88rem;
+        background: #1a1a2e; border: 1px solid #2a2a3e;
+    }
+    .review-opt.correct-opt { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+    .review-opt.wrong-opt { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+    .review-opt .opt-ltr {
+        width: 24px; height: 24px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; font-weight: 700;
+        font-size: 0.75rem; flex-shrink: 0; background: #2a2a3e;
+    }
+    .review-opt.correct-opt .opt-ltr { background: #22c55e; color: #fff; }
+    .review-opt.wrong-opt .opt-ltr { background: #ef4444; color: #fff; }
+    .review-mark { margin-left: auto; font-weight: 700; flex-shrink: 0; }
+
+    .explanation-box {
+        background: #1a1a2e; border-radius: 8px; padding: 0.8rem 1rem;
+        margin-top: 0.6rem; font-size: 0.85rem; line-height: 1.6;
+        border-left: 3px solid #fbbf24;
+    }
+    .explanation-label { font-weight: 600; color: #fbbf24; margin-bottom: 0.3rem; }
+</style>
+
+<div class="page-header">
+    <a href="/" class="back-link" style="color: #888; text-decoration: none; font-size: 0.9rem;">Back to Dashboard</a>
+    <h1>Test Results</h1>
+</div>
+
+{% if not attempt %}
+<div style="text-align:center;padding:3rem;opacity:.6;">
+    <h3>Results not found.</h3>
+    <a href="/" class="btn" style="margin-top:1rem;">Go to Dashboard</a>
+</div>
+{% else %}
+
+{% set score_class = 'score-good' if attempt.score_percentage >= 70 else ('score-ok' if attempt.score_percentage >= 40 else 'score-poor') %}
+
+<div class="results-top">
+    <div class="score-card {{ score_class }}">
+        <div class="score-circle-wrap">
+            <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" stroke="#2a2a3e" stroke-width="8" fill="none"/>
+                <circle cx="60" cy="60" r="54"
+                        stroke="{% if attempt.score_percentage >= 70 %}#22c55e{% elif attempt.score_percentage >= 40 %}#fbbf24{% else %}#ef4444{% endif %}"
+                        stroke-width="8" fill="none"
+                        stroke-dasharray="{{ (attempt.score_percentage / 100 * 339.3)|round(1) }} 339.3"
+                        stroke-linecap="round" transform="rotate(-90 60 60)"/>
+            </svg>
+            <span class="score-val">{{ attempt.score_percentage|round(0)|int }}%</span>
+        </div>
+        <div class="score-details">
+            <h2>{{ attempt.correct_answers }} / {{ attempt.total_questions }}</h2>
+            <p>Questions Correct</p>
+            {% if attempt.time_taken_seconds %}
+            <p>Time: <span class="time-val">{{ (attempt.time_taken_seconds // 60) }}m {{ (attempt.time_taken_seconds % 60) }}s</span></p>
+            {% endif %}
+            <p>Score: <span class="time-val">{{ attempt.correct_answers }} / {{ attempt.total_questions }} marks</span></p>
+        </div>
+    </div>
+
+    <div class="percentile-card">
+        {% if mock_result %}
+        <div class="percentile-val">{{ mock_result.percentile_estimate|round(1) }}%ile</div>
+        <div class="percentile-label">Estimated Percentile</div>
+        {% else %}
+        <div class="percentile-val">--</div>
+        <div class="percentile-label">Percentile (available for mock tests)</div>
+        {% endif %}
+        <div class="marks-row">
+            <div class="marks-item">
+                <div class="val">{{ attempt.correct_answers }}</div>
+                <div class="lbl">Correct</div>
+            </div>
+            <div class="marks-item">
+                <div class="val">{{ attempt.total_questions - attempt.correct_answers }}</div>
+                <div class="lbl">Wrong</div>
+            </div>
+            <div class="marks-item">
+                <div class="val">{{ attempt.correct_answers }}</div>
+                <div class="lbl">Total Marks</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if breakdown %}
+<div class="section-breakdown">
+    <h3>Section-wise Score Breakdown</h3>
+    <div class="breakdown-grid">
+        {% for subj, data in breakdown.items() %}
+        {% set pct = (data.correct / data.total * 100)|round(1) if data.total > 0 else 0 %}
+        <div class="bd-item">
+            <div class="bd-header">
+                <span class="bd-name">{{ subj }}</span>
+                <span class="bd-score">{{ data.correct }}/{{ data.total }}</span>
+            </div>
+            <div class="bd-bar">
+                <div class="bd-fill {% if pct >= 70 %}good{% elif pct >= 40 %}ok{% else %}poor{% endif %}"
+                     style="width: {{ pct }}%;"></div>
+            </div>
+            <div class="bd-pct">{{ pct }}% accuracy</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="analysis-grid">
+    {% if weak_topics and weak_topics|length > 0 %}
+    <div class="analysis-card">
+        <h3>Weak Topics Identified</h3>
+        {% for wt in weak_topics %}
+        {% set wt_pct = (wt.correct / wt.total * 100)|round(0)|int if wt.total > 0 else 0 %}
+        <div class="weak-item">
+            <div>
+                <div class="weak-topic">{{ wt.topic_name }}</div>
+                <div class="weak-subject">{{ wt.subject_name }}</div>
+            </div>
+            <div class="weak-acc {% if wt_pct < 40 %}bad{% else %}med{% endif %}">
+                {{ wt.correct }}/{{ wt.total }} ({{ wt_pct }}%)
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="analysis-card">
+        <h3>Improvement Suggestions</h3>
+        {% if attempt.score_percentage < 40 %}
+        <div class="suggestion-item">Focus on building fundamentals. Start with studying the theory/lessons before attempting more questions.</div>
+        <div class="suggestion-item">Practice section-wise to identify which subjects need the most attention.</div>
+        <div class="suggestion-item">Target at least 50% accuracy before taking full mock tests.</div>
+        {% elif attempt.score_percentage < 70 %}
+        <div class="suggestion-item">Good progress! Focus on your weakest sections to boost your overall score.</div>
+        <div class="suggestion-item">Review all incorrect answers and understand the explanations.</div>
+        <div class="suggestion-item">Try the Adaptive Test to practice your weak areas efficiently.</div>
+        {% else %}
+        <div class="suggestion-item">Excellent performance! Maintain consistency with regular practice.</div>
+        <div class="suggestion-item">Focus on time management - aim to finish with 10-15 minutes to spare for review.</div>
+        <div class="suggestion-item">Work on the sections where you scored below 80% to maximize your total.</div>
+        {% endif %}
+        {% if attempt.time_taken_seconds and attempt.total_questions > 0 %}
+        {% set avg_time = (attempt.time_taken_seconds / attempt.total_questions)|round(0)|int %}
+        <div class="suggestion-item">Average time per question: {{ avg_time }} seconds.
+            {% if avg_time > 90 %}You are spending too much time per question - practice speed.
+            {% elif avg_time < 30 %}You might be rushing. Consider reviewing more carefully.
+            {% else %}Good pace!{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- CUTOFF COMPARISON PANEL -->
+<div style="background:#16163a;border:1px solid #2a2a3e;border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h3 style="margin:0 0 1rem;color:#a78bfa;font-size:1rem;">MH-CET Cutoff Comparison</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+        {% set score_pct = attempt.score_percentage|round(1) %}
+        <div style="background:#1a1a2e;border-radius:10px;padding:1rem;text-align:center;">
+            <div style="font-size:.8rem;opacity:.6;margin-bottom:.3rem;">Your Score</div>
+            <div style="font-size:1.8rem;font-weight:800;color:{% if score_pct >= 83 %}#22c55e{% elif score_pct >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">{{ score_pct }}%</div>
+            <div style="font-size:.8rem;opacity:.6;">({{ attempt.correct_answers }}/{{ attempt.total_questions }})</div>
+        </div>
+        <div style="background:#1a1a2e;border-radius:10px;padding:1rem;text-align:center;border:1px solid {% if score_pct >= 91.7 %}#22c55e{% else %}#2a2a3e{% endif %};">
+            <div style="font-size:.8rem;opacity:.6;margin-bottom:.3rem;">GLC Mumbai Cutoff</div>
+            <div style="font-size:1.8rem;font-weight:800;color:#22c55e;">91.7%</div>
+            <div style="font-size:.8rem;color:{% if score_pct >= 91.7 %}#22c55e{% else %}#ef4444{% endif %};">
+                {% if score_pct >= 91.7 %}✓ Above cutoff{% else %}{{ (91.7 - score_pct)|round(1) }}% below{% endif %}
+            </div>
+        </div>
+        <div style="background:#1a1a2e;border-radius:10px;padding:1rem;text-align:center;border:1px solid {% if score_pct >= 83.3 %}#22c55e{% else %}#2a2a3e{% endif %};">
+            <div style="font-size:.8rem;opacity:.6;margin-bottom:.3rem;">KC Law Cutoff</div>
+            <div style="font-size:1.8rem;font-weight:800;color:#6366f1;">83.3%</div>
+            <div style="font-size:.8rem;color:{% if score_pct >= 83.3 %}#22c55e{% else %}#ef4444{% endif %};">
+                {% if score_pct >= 83.3 %}✓ Above cutoff{% else %}{{ (83.3 - score_pct)|round(1) }}% below{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="results-actions">
+    <a href="/" class="btn-dash">Dashboard</a>
+    {% if attempt.topic_id %}
+    <a href="/quiz/{{ attempt.topic_id }}?count={{ attempt.total_questions }}" class="btn-retry">Retry This Quiz</a>
+    {% endif %}
+    <a href="/weak-areas" class="btn-weak">Practice Weak Areas</a>
+    <a href="/revision" style="background:#8b5cf6;color:#fff;padding:.7rem 1.3rem;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem;">Revision Mode</a>
+    <form method="POST" action="/generate-adaptive" style="display:inline;">
+        <button type="submit" class="btn-retry">Adaptive Test (Weak Topics)</button>
+    </form>
+</div>
+
+<div class="review-section">
+    <h2>Question-by-Question Review</h2>
+    {% for q in questions %}
+    <div class="review-card {% if q.is_correct %}review-correct{% else %}review-incorrect{% endif %}">
+        <div class="review-header">
+            <span class="review-num">#{{ loop.index }}</span>
+            <span class="review-status {% if q.is_correct %}correct{% else %}incorrect{% endif %}">
+                {% if q.is_correct %}Correct{% else %}Incorrect{% endif %}
+            </span>
+            <span class="review-subj">{{ q.subject_name }} / {{ q.topic_name }}</span>
+        </div>
+
+        {% if q.passage %}
+        <div class="review-passage">{{ q.passage[:300] }}{% if q.passage|length > 300 %}...{% endif %}</div>
+        {% endif %}
+
+        <div class="review-q">{{ q.question_text }}</div>
+
+        <div class="review-opts">
+            {% for letter, text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+            {% if text %}
+            <div class="review-opt
+                {% if letter == q.correct_answer %}correct-opt{% endif %}
+                {% if letter == q.selected_answer and not q.is_correct %}wrong-opt{% endif %}">
+                <div class="opt-ltr">{{ letter }}</div>
+                <div>{{ text }}</div>
+                {% if letter == q.correct_answer %}<span class="review-mark" style="color:#22c55e;">&#10003;</span>{% endif %}
+                {% if letter == q.selected_answer and not q.is_correct %}<span class="review-mark" style="color:#ef4444;">&#10007;</span>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if q.explanation %}
+        <div class="explanation-box">
+            <div class="explanation-label">Explanation</div>
+            <p style="margin:0;">{{ q.explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

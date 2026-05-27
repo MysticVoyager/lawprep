@@ -1,0 +1,17 @@
+# Core (required to run the portal)
+flask==3.1.1
+python-dotenv==1.0.1
+requests==2.32.3
+
+# Used by the data import / DB rebuild path. The pre-built lawprep.db
+# already ships in the repo, so these are only needed if you want to
+# regenerate the database from source PDFs.
+pdfplumber==0.11.9
+
+# Optional AI integrations — install only if you want these features:
+#   pip install google-genai     # Gemini-powered takeaways, quizzes, tutor
+#   pip install anthropic        # Claude-powered "explain this paragraph"
+# They are intentionally NOT pinned here so the portal stays runnable
+# without API access. Uncomment the lines below if you want them locked in.
+# google-genai==0.3.0
+# anthropic==0.39.0

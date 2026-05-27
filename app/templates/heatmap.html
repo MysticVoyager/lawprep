@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Topic Heatmap{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🗺️ Weak Topic Heatmap</h1>
+    <p class="subtitle">Color-coded by accuracy — focus your remaining study time here</p>
+</div>
+
+<div class="legend" style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;">
+    <span style="font-size:.85rem;opacity:.7;">Accuracy:</span>
+    <span class="heat-badge critical">Critical (&lt;40%)</span>
+    <span class="heat-badge weak">Weak (40-60%)</span>
+    <span class="heat-badge moderate">Moderate (60-80%)</span>
+    <span class="heat-badge strong">Strong (80%+)</span>
+    <span class="heat-badge untested">Not attempted</span>
+</div>
+
+<style>
+.heat-badge { padding:4px 12px;border-radius:8px;font-size:.8rem;font-weight:600; }
+.heat-badge.critical { background:#ef444430;color:#ef4444;border:1px solid #ef4444; }
+.heat-badge.weak { background:#f59e0b30;color:#f59e0b;border:1px solid #f59e0b; }
+.heat-badge.moderate { background:#eab30830;color:#ca8a04;border:1px solid #ca8a04; }
+.heat-badge.strong { background:#22c55e30;color:#22c55e;border:1px solid #22c55e; }
+.heat-badge.untested { background:#64748b30;color:#94a3b8;border:1px solid #64748b; }
+.heat-card { padding:10px 14px;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:transform .1s; }
+.heat-card:hover { transform:translateX(4px); }
+.heat-card.critical { background:#ef444415;border-left:3px solid #ef4444; }
+.heat-card.weak { background:#f59e0b15;border-left:3px solid #f59e0b; }
+.heat-card.moderate { background:#ca8a0415;border-left:3px solid #ca8a04; }
+.heat-card.strong { background:#22c55e15;border-left:3px solid #22c55e; }
+.heat-card.untested { background:#64748b15;border-left:3px solid #64748b; }
+</style>
+
+{% if not heatmap %}
+<div class="empty-state" style="text-align:center;padding:3rem;opacity:.6;">
+    <div style="font-size:3rem;">📊</div>
+    <h3>No attempts yet</h3>
+    <p>Take some quizzes or mock tests to see your topic heatmap.</p>
+    <a href="/subjects" class="btn" style="margin-top:1rem;">Start Practising</a>
+</div>
+{% else %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;">
+{% for subject, topics in heatmap.items() %}
+<div class="card" style="background:#1e293b;border-radius:12px;padding:1.2rem;">
+    <h3 style="margin-bottom:1rem;font-size:1rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">{{ subject }}</h3>
+    {% for t in topics %}
+    <div class="heat-card {{ t.color_class }}">
+        <span style="font-size:.85rem;font-weight:500;">{{ t.topic }}</span>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+            <span style="font-size:.75rem;opacity:.6;">{{ t.attempts }} attempts</span>
+            {% if t.attempts > 0 %}
+            <span class="heat-badge {{ t.color_class }}" style="padding:2px 8px;font-size:.75rem;">{{ t.accuracy }}%</span>
+            {% else %}
+            <span class="heat-badge untested" style="padding:2px 8px;font-size:.75rem;">-</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}
