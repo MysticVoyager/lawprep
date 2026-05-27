@@ -54,6 +54,7 @@ instance/
 *.swo
 .DS_Store
 Thumbs.db
+.fuse_hidden*
 
 # --- Coverage / tests ---
 .coverage

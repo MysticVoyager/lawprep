@@ -6,6 +6,21 @@ Runs entirely on your own computer. No accounts, no ads, no data leaves your mac
 
 ---
 
+## Screenshots
+
+| | |
+| :--: | :--: |
+| **Dashboard** | **Subjects** |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Subjects](docs/screenshots/subjects.png) |
+| **Lesson view** | **Mock tests** |
+| ![Lesson](docs/screenshots/learn.png) | ![Mock tests list](docs/screenshots/mock-tests-1.png) |
+| **Full-length mock** | **Study plan** |
+| ![Full mock](docs/screenshots/full-mock-test.png) | ![Study plan](docs/screenshots/study-plan.png) |
+| **Analytics & progress** | |
+| ![Analytics](docs/screenshots/analytics.png) | |
+
+---
+
 ## What's inside
 
 - **Structured lessons** for all five sections — Legal Reasoning, Logical Reasoning, English, Mathematics, and General Knowledge.
@@ -16,7 +31,7 @@ Runs entirely on your own computer. No accounts, no ads, no data leaves your mac
 - **Optional AI tutor** — paste your own Gemini / Claude API key to unlock on-demand explanations and lesson takeaways. The portal works fully without these.
 - **Optional voice narration** of lessons via ElevenLabs TTS, with a free browser-based fallback.
 
-The portal ships with a pre-built SQLite database (`lawprep.db`, ~6 MB) so you can start studying immediately after install — no data import required.
+The portal ships with a pre-built SQLite database (`lawprep.db`, ~5 MB) so you can start studying immediately after install — no data import required. The database arrives clean: no pre-existing progress, scores, or bookmarks. Every student starts from zero.
 
 ---
 
