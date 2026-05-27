@@ -2066,7 +2066,7 @@ def revision_mode():
 
 @app.route('/study-plan')
 def study_plan():
-    """Show the 24-day study plan."""
+    """Show the complete MH-CET Law study plan."""
     plan_path = os.path.join(os.path.dirname(__file__), '24_day_study_plan.json')
     plan = []
     if os.path.exists(plan_path):

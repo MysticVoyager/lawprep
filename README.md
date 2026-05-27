@@ -11,7 +11,7 @@ Runs entirely on your own computer. No accounts, no ads, no data leaves your mac
 - **Structured lessons** for all five sections — Legal Reasoning, Logical Reasoning, English, Mathematics, and General Knowledge.
 - **Thousands of practice MCQs** with detailed solutions, taken from previous years and curated question banks.
 - **Full-length mock tests** with score breakdown, time tracking, and topic-wise analytics.
-- **Study planner** — pre-built 24-day and 10-day "war plan" schedules.
+- **Complete study plan** — a structured, day-by-day prep schedule covering every section, with daily tests and full-length mocks built in.
 - **Bookmarks, revision lists, and a progress heatmap** so you can see exactly where you stand.
 - **Optional AI tutor** — paste your own Gemini / Claude API key to unlock on-demand explanations and lesson takeaways. The portal works fully without these.
 - **Optional voice narration** of lessons via ElevenLabs TTS, with a free browser-based fallback.
@@ -95,7 +95,7 @@ After editing `.env`, restart the portal for the keys to take effect.
 2. Work through the **lessons** in order. Bookmark anything you want to revisit.
 3. After every lesson, hit the **practice quiz** at the bottom.
 4. Once you've covered a section, take a **mock test** for that subject.
-5. Use the **24-day study plan** if you're starting late, or the **war plan** in the last 10 days before the exam.
+5. Follow the **complete study plan** to stay on track across all five subjects right up to exam day.
 6. Check the **heatmap** weekly to spot weak topics.
 
 ---
